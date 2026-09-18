@@ -68,4 +68,11 @@ public class ClassSelectionGUI {
     public static int getSlotTntCart() {
         return SLOT_TNT_CART;
     }
+
+    public static CombatClass classFromSlot(int slot) {
+        if (slot == SLOT_SWORD) return CombatClass.SWORD;
+        if (slot == SLOT_MACE) return CombatClass.MACE;
+        if (slot == SLOT_TNT_CART) return CombatClass.TNT_CART;
+        return null;
+    }
 }
