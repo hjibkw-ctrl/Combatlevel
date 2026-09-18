@@ -199,7 +199,7 @@ public class CombatListener implements Listener {
 
         if (wasLocked && killerData.isBeginnerPerkUnlocked() && killerData.getCombatClass() != null) {
             killer.sendMessage("§a★ فتحت ميزة المبتدئ الخاصة بـ" + killerData.getCombatClass().getDisplayName() + " بعد أول قتلة!");
-            killer.playSound(killer.getLocation(), Sound.UI_TOTEM_USE, 1f, 1.2f);
+            killer.playSound(killer.getLocation(), Sound.ITEM_TOTEM_USE, 1f, 1.2f);
         }
     }
-                                    }
+    }
