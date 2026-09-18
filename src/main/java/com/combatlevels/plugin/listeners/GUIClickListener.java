@@ -1,78 +1,54 @@
-package com.combatlevels.plugin.gui;
+package com.combatlevels.plugin.listeners;
 
 import com.combatlevels.plugin.classes.CombatClass;
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
+import com.combatlevels.plugin.data.PlayerData;
+import com.combatlevels.plugin.data.PlayerDataManager;
+import com.combatlevels.plugin.gui.ClassSelectionGUI;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemFlag;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryClickEvent;
 
-import java.util.ArrayList;
-import java.util.List;
+public class GUIClickListener implements Listener {
 
-public class ClassSelectionGUI {
+    private final PlayerDataManager dataManager;
 
-    public static final String GUI_TITLE = "\u00A76\u2726 \u00A7lاختر أسلوب قتالك \u00A76\u2726";
-    private static final int SIZE = 27;
-
-    private static final int SLOT_SWORD = 11;
-    private static final int SLOT_MACE = 13;
-    private static final int SLOT_TNT_CART = 15;
-
-    public static Inventory build() {
-        Inventory inv = Bukkit.createInventory(null, SIZE, GUI_TITLE);
-
-        inv.setItem(SLOT_SWORD, createClassItem(CombatClass.SWORD));
-        inv.setItem(SLOT_MACE, createClassItem(CombatClass.MACE));
-        inv.setItem(SLOT_TNT_CART, createClassItem(CombatClass.TNT_CART));
-
-        return inv;
+    public GUIClickListener(PlayerDataManager dataManager) {
+        this.dataManager = dataManager;
     }
 
-    public static void open(Player player) {
-        player.openInventory(build());
-    }
+    @EventHandler
+    public void onClick(InventoryClickEvent event) {
+        if (!event.getView().getTitle().equals(ClassSelectionGUI.GUI_TITLE)) return;
 
-    private static ItemStack createClassItem(CombatClass combatClass) {
-        ItemStack item = new ItemStack(combatClass.getIconMaterial());
-        ItemMeta meta = item.getItemMeta();
+        event.setCancelled(true);
 
-        if (meta != null) {
-            meta.setDisplayName(combatClass.getDisplayName());
+        if (!(event.getWhoClicked() instanceof Player player)) return;
+        if (event.getClickedInventory() == null) return;
+        if (!event.getClickedInventory().equals(event.getView().getTopInventory())) return;
 
-            List<String> lore = new ArrayList<>();
-            lore.add(combatClass.getDescription());
-            lore.add("");
-            for (String line : combatClass.getPerksLore()) {
-                lore.add(line);
-            }
+        CombatClass chosen = ClassSelectionGUI.classFromSlot(event.getSlot());
+        if (chosen == null) return;
 
-            meta.setLore(lore);
-            meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
-            item.setItemMeta(meta);
+        if (!chosen.isSupportedOnThisServer()) {
+            player.sendMessage("§cهذا الأسلوب غير مدعوم بنسختك الحالية من ماين كرافت!");
+            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
+            return;
         }
 
-        return item;
-    }
+        PlayerData data = dataManager.getOrCreate(player.getUniqueId());
 
-    public static int getSlotSword() {
-        return SLOT_SWORD;
-    }
+        if (data.hasChosenClass()) {
+            player.sendMessage("§cأنت اخترت أسلوب قتالك مسبقاً: " + data.getCombatClass().getDisplayName());
+            player.closeInventory();
+            return;
+        }
 
-    public static int getSlotMace() {
-        return SLOT_MACE;
-    }
-
-    public static int getSlotTntCart() {
-        return SLOT_TNT_CART;
-    }
-
-    public static CombatClass classFromSlot(int slot) {
-        if (slot == SLOT_SWORD) return CombatClass.SWORD;
-        if (slot == SLOT_MACE) return CombatClass.MACE;
-        if (slot == SLOT_TNT_CART) return CombatClass.TNT_CART;
-        return null;
+        data.setCombatClass(chosen);
+        player.closeInventory();
+        player.sendMessage("§a✔ تم اختيار أسلوبك القتالي: " + chosen.getDisplayName());
+        player.sendMessage("§7اقتل لاعباً واحداً لتفتح ميزة المبتدئ الخاصة بأسلوبك!");
+        player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 1.4f);
     }
 }
