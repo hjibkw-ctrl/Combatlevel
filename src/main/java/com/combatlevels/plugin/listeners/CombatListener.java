@@ -78,8 +78,14 @@ public class CombatListener implements Listener {
         int streak = attackerData.registerSwordHit(victim.getUniqueId());
         if (streak >= 3) {
             event.setDamage(event.getDamage() * 1.5);
-            victim.getWorld().spawnParticle(Particle.CRIT, victim.getLocation().add(0, 1, 0), 25, 0.3, 0.5, 0.3);
-            attacker.playSound(attacker.getLocation(), Sound.ENTITY_PLAYER_ATTACK_CRIT, 1f, 1f);
+
+            victim.getWorld().spawnParticle(Particle.CRIT, victim.getLocation().add(0, 1, 0), 30, 0.3, 0.5, 0.3, 0.1);
+
+            // نستخدم world.playSound بدل player.playSound عشان الصوت يوصل لأي حد قريب،
+            // مو بس للمهاجم لوحده (packet خاص). كذا نضمن إنه مسموع فعلياً.
+            victim.getWorld().playSound(victim.getLocation(), Sound.ENTITY_PLAYER_ATTACK_CRIT, 1.2f, 1.0f);
+            victim.getWorld().playSound(victim.getLocation(), Sound.ENTITY_ARROW_HIT_PLAYER, 0.8f, 1.6f);
+
             attacker.sendMessage("§c⚔ كريتكل مضاعف! (3 ضربات متتالية)");
             attackerData.resetSwordStreak();
         }
@@ -93,6 +99,13 @@ public class CombatListener implements Listener {
 
         attackerData.setMaceLastFreezeMillis(now);
         FreezeUtil.freeze(plugin, victim, MACE_FREEZE_DURATION_TICKS);
+
+        // إيفكت بصري وصوتي واضح للتجميد (كان ناقص تماماً بالكود القديم)
+        victim.getWorld().spawnParticle(Particle.SNOWFLAKE, victim.getLocation().add(0, 1, 0), 40, 0.4, 0.6, 0.4, 0.02);
+        victim.getWorld().spawnParticle(Particle.ITEM_SNOWBALL, victim.getLocation().add(0, 1, 0), 15, 0.3, 0.5, 0.3);
+        victim.getWorld().playSound(victim.getLocation(), Sound.BLOCK_POWDER_SNOW_HIT, 1.2f, 0.8f);
+        victim.getWorld().playSound(victim.getLocation(), Sound.BLOCK_GLASS_BREAK, 0.6f, 1.4f);
+
         victim.sendMessage("§b❄ تجمدت لمدة ثانية بسبب ضربة الميس!");
         attacker.sendMessage("§6✔ فعّلت تجميد الميس (كولداون 3 دقائق)");
     }
@@ -202,4 +215,4 @@ public class CombatListener implements Listener {
             killer.playSound(killer.getLocation(), Sound.ITEM_TOTEM_USE, 1f, 1.2f);
         }
     }
-    }
+            }
