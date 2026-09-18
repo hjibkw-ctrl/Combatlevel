@@ -1,21 +1,26 @@
 name: CombatLevels
-version: '1.21'
-main: com.combatlevels.plugin.CombatLevelsPlugin
+version: '1.0.0'
+api-version: '1.21'
+main: com.combatlevels.plugin.CombatLevels
 author: CombatLevels
 description: >
-  نظام كلاسات قتالية (سيف / فأس / قوس / ميس) مع ليفل قتالي (Combat Level)
+  قتالية (سيف / فأس / قوس / ميس) مع ليفل قتالي.
   يرتفع بالضربات والقتلات ويفتح ميزات خاصة بكل سلاح.
 
 commands:
   combatlevel:
-    description: عرض معلومات الليفل القتالي الخاص بك أو بلاعب آخر
+    description: يعرض ليفلك القتالي الخاص بك أو بلاعب آخر
     aliases: [cl, combatlvl]
     usage: /<command> [player]
   chooseclass:
-    description: يفتح شاشة اختيار أسلوب القتال
+    description: يفتح شاشة اختيار أسلوب القتال (أول مرة فقط)
     aliases: [choosestyle, classgui]
+  setclass:
+    description: (أونرز فقط) يغيّر أو يفرض كلاس معين على أي لاعب
+    usage: /<command> <player> <sword|mace|tnt_cart>
+    permission: combatlevels.admin
 
 permissions:
   combatlevels.admin:
-    description: صلاحية إدارة البلجن (إعادة ضبط ليفل لاعب، إلخ)
+    description: البلجن (إعادة ضبط ليفل لاعب، تغيير كلاس لاعب، إلخ)
     default: op
