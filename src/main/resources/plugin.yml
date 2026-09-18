@@ -1,5 +1,5 @@
 name: CombatLevels
-version: '1.0.0'
+version: '1.21'
 main: com.combatlevels.plugin.CombatLevelsPlugin
 author: CombatLevels
 description: >
