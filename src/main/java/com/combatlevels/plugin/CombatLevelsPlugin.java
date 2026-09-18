@@ -1,6 +1,7 @@
 package com.combatlevels.plugin;
 
 import com.combatlevels.plugin.classes.CombatClass;
+import com.combatlevels.plugin.commands.SetClassCommand;
 import com.combatlevels.plugin.data.PlayerData;
 import com.combatlevels.plugin.data.PlayerDataManager;
 import com.combatlevels.plugin.gui.ClassSelectionGUI;
@@ -28,8 +29,9 @@ public class CombatLevelsPlugin extends JavaPlugin implements CommandExecutor {
 
         if (getCommand("chooseclass") != null) getCommand("chooseclass").setExecutor(this);
         if (getCommand("combatlevel") != null) getCommand("combatlevel").setExecutor(this);
+        if (getCommand("setclass") != null) getCommand("setclass").setExecutor(new SetClassCommand(dataManager));
 
-        getLogger().info("CombatLevels تفعّل بنجاح! (كلاسات: سيف / ميس / عربة تنت)");
+        getLogger().info("CombatLevels تفعّل بنجاح! (كلاسات: سيف / فأس / ميس / عربة تنت)");
     }
 
     @Override
@@ -37,7 +39,7 @@ public class CombatLevelsPlugin extends JavaPlugin implements CommandExecutor {
         if (dataManager != null) {
             dataManager.saveAll();
         }
-        getLogger().info("CombatLevels توقف - تم حفظ بيانات اللاعبين.");
+        getLogger().info("CombatLevels توقّف - تم حفظ بيانات اللاعبين.");
     }
 
     @Override
@@ -45,7 +47,7 @@ public class CombatLevelsPlugin extends JavaPlugin implements CommandExecutor {
         switch (command.getName().toLowerCase()) {
             case "chooseclass" -> {
                 if (!(sender instanceof Player player)) {
-                    sender.sendMessage("هذا الأمر للاعبين داخل السيرفر فقط.");
+                    sender.sendMessage("§cهذا الأمر داخل اللعبين فقط.");
                     return true;
                 }
                 player.openInventory(ClassSelectionGUI.build());
@@ -56,7 +58,7 @@ public class CombatLevelsPlugin extends JavaPlugin implements CommandExecutor {
                 if (args.length > 0) {
                     target = getServer().getPlayer(args[0]);
                     if (target == null) {
-                        sender.sendMessage("§cاللاعب غير متصل أو غير موجود.");
+                        sender.sendMessage("§cاللاعب غير متصل أو موجود.");
                         return true;
                     }
                 } else if (sender instanceof Player player) {
@@ -67,14 +69,14 @@ public class CombatLevelsPlugin extends JavaPlugin implements CommandExecutor {
                 }
 
                 PlayerData data = dataManager.getOrCreate(target.getUniqueId());
-                sender.sendMessage("§6§l— معلومات " + target.getName() + " القتالية —");
+                sender.sendMessage("§6§l— معلومات §f" + target.getName() + " §6§l—");
                 if (!data.hasChosenClass()) {
                     sender.sendMessage("§7لم يختر أسلوب قتال بعد.");
                 } else {
                     CombatClass c = data.getCombatClass();
                     sender.sendMessage("§7الأسلوب: " + c.getDisplayName());
                     sender.sendMessage("§7عدد القتلات: §f" + data.getKills());
-                    sender.sendMessage("§7ميزة المبتدئ: " + (data.isBeginnerPerkUnlocked() ? "§aمفتوحة" : "§cمقفلة (اقتل لاعباً واحداً)"));
+                    sender.sendMessage("§7ميزة المبتدئ: " + (data.isBeginnerPerkUnlocked() ? "§aمفتوحة" : "§cلم تفتح بعد"));
                 }
                 return true;
             }
@@ -84,3 +86,4 @@ public class CombatLevelsPlugin extends JavaPlugin implements CommandExecutor {
         }
     }
 }
+
