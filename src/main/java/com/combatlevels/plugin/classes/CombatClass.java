@@ -54,3 +54,29 @@ public enum CombatClass {
     }
 
     public String getDisplayName() {
+        return displayName;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public String[] getPerksLore() {
+        return perksLore;
+    }
+
+    public Material getIconMaterial() {
+        Material mat = Material.matchMaterial(materialName);
+        if (mat != null) return mat;
+        switch (this) {
+            case MACE: return Material.STICK;
+            case SWORD: return Material.IRON_SWORD;
+            case TNT_CART: return Material.TNT;
+            default: return Material.STICK;
+        }
+    }
+
+    public boolean isSupportedOnThisServer() {
+        return Material.matchMaterial(materialName) != null;
+    }
+}
