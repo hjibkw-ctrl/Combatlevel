@@ -1,7 +1,7 @@
 name: CombatLevels
 version: '1.0.0'
 api-version: '1.21'
-main: com.combatlevels.plugin.CombatLevels
+main: com.combatlevels.plugin.CombatLevelsPlugin
 author: CombatLevels
 description: >
   قتالية (سيف / فأس / قوس / ميس) مع ليفل قتالي.
