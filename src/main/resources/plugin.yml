@@ -24,3 +24,4 @@ permissions:
   combatlevels.admin:
     description: البلجن (إعادة ضبط ليفل لاعب، تغيير كلاس لاعب، إلخ)
     default: op
+    
