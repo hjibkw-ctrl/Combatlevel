@@ -131,7 +131,7 @@ public class CombatListener implements Listener {
 
         // إيفكت بصري وصوتي واضح للتجميد (كان ناقص تماماً بالكود القديم)
         victim.getWorld().spawnParticle(Particle.SNOWFLAKE, victim.getLocation().add(0, 1, 0), 40, 0.4, 0.6, 0.4, 0.02);
-        victim.getWorld().spawnParticle(Particle.SNOWBALL, victim.getLocation().add(0, 1, 0), 15, 0.3, 0.5, 0.3);
+        victim.getWorld().spawnParticle(Particle.ITEM_SNOWBALL, victim.getLocation().add(0, 1, 0), 15, 0.3, 0.5, 0.3);
         victim.getWorld().playSound(victim.getLocation(), Sound.BLOCK_POWDER_SNOW_HIT, 1.2f, 0.8f);
         victim.getWorld().playSound(victim.getLocation(), Sound.BLOCK_GLASS_BREAK, 0.6f, 1.4f);
 
