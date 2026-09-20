@@ -52,6 +52,13 @@ public class CombatListener implements Listener {
             PlayerData victimData = dataManager.getOrCreate(victim.getUniqueId());
             if (victimData.getCombatClass() == CombatClass.SWORD) {
                 victimData.resetSwordStreak();
+
+                // لو كانت وضعية الكريتكال المستمرة شغالة عند الشخص اللي انضرب، نلغيها فوراً
+                // (الشرط: "لين ما حد يضربه")
+                if (victimData.isCritModeActive()) {
+                    victimData.cancelCritMode();
+                    victim.sendMessage("§c✖ توقفت وضعية الكريتكال المستمرة بسبب انضربك!");
+                }
             }
         }
 
@@ -72,23 +79,39 @@ public class CombatListener implements Listener {
         }
     }
 
+    private static final long SWORD_CRIT_MODE_DURATION_MILLIS = 10 * 1000L;
+
     private void handleSwordHit(EntityDamageByEntityEvent event, Player attacker, PlayerData attackerData) {
         if (!(event.getEntity() instanceof Player victim)) return;
 
+        // لو وضعية الكريتكال المستمرة شغالة أصلاً، كل ضربة تطلع كريتكال تلقائياً
+        // بدون الحاجة نعيد عد الـ 3 ضربات من جديد.
+        if (attackerData.isCritModeActive()) {
+            applyCritEffect(event, victim);
+            return;
+        }
+
         int streak = attackerData.registerSwordHit(victim.getUniqueId());
         if (streak >= 3) {
-            event.setDamage(event.getDamage() * 1.5);
+            applyCritEffect(event, victim);
 
-            victim.getWorld().spawnParticle(Particle.CRIT, victim.getLocation().add(0, 1, 0), 30, 0.3, 0.5, 0.3, 0.1);
-
-            // نستخدم world.playSound بدل player.playSound عشان الصوت يوصل لأي حد قريب،
-            // مو بس للمهاجم لوحده (packet خاص). كذا نضمن إنه مسموع فعلياً.
-            victim.getWorld().playSound(victim.getLocation(), Sound.ENTITY_PLAYER_ATTACK_CRIT, 1.2f, 1.0f);
-            victim.getWorld().playSound(victim.getLocation(), Sound.ENTITY_ARROW_HIT_PLAYER, 0.8f, 1.6f);
-
-            attacker.sendMessage("§c⚔ كريتكل مضاعف! (3 ضربات متتالية)");
+            // نفعّل وضعية الكريتكال المستمرة لمدة 10 ثواني بدل ما نكتفي بضربة وحدة.
+            attackerData.activateCritMode(SWORD_CRIT_MODE_DURATION_MILLIS);
             attackerData.resetSwordStreak();
+
+            attacker.sendMessage("§c⚔ كريتكال مستمر مفعّل! كل ضرباتك كريتكال لمدة §f10 ثواني§c (يوقف لو انضربت).");
         }
+    }
+
+    private void applyCritEffect(EntityDamageByEntityEvent event, Player victim) {
+        event.setDamage(event.getDamage() * 1.5);
+
+        victim.getWorld().spawnParticle(Particle.CRIT, victim.getLocation().add(0, 1, 0), 30, 0.3, 0.5, 0.3, 0.1);
+
+        // نستخدم world.playSound بدل player.playSound عشان الصوت يوصل لأي حد قريب،
+        // مو بس للمهاجم لوحده (packet خاص). كذا نضمن إنه مسموع فعلياً.
+        victim.getWorld().playSound(victim.getLocation(), Sound.ENTITY_PLAYER_ATTACK_CRIT, 1.2f, 1.0f);
+        victim.getWorld().playSound(victim.getLocation(), Sound.ENTITY_ARROW_HIT_PLAYER, 0.8f, 1.6f);
     }
 
     private void handleMaceHit(EntityDamageByEntityEvent event, Player attacker, PlayerData attackerData) {
@@ -215,4 +238,4 @@ public class CombatListener implements Listener {
             killer.playSound(killer.getLocation(), Sound.ITEM_TOTEM_USE, 1f, 1.2f);
         }
     }
-}
+            }
