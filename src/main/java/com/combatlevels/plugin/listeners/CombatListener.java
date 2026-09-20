@@ -173,7 +173,7 @@ public class CombatListener implements Listener {
 
             if (bestBiggest) {
                 // نضاعف قوة الانفجار الفعلية (تكسير + ضرر) بدل ما نتلاعب بالضرر يدوياً بعد الانفجار
-                explosiveMinecart.setExplosionPower(explosiveMinecart.getExplosionPower() * 2f);
+                explosiveMinecart.setYield(explosiveMinecart.getYield() * 2f);
                 vehicle.setMetadata(META_BIGGEST_CART, new FixedMetadataValue(plugin, true));
             }
 
@@ -262,5 +262,4 @@ public class CombatListener implements Listener {
             }
         }
     }
-                    }
-    
+}
