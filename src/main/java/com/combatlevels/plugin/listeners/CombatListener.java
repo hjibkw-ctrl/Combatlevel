@@ -3,12 +3,15 @@ package com.combatlevels.plugin.listeners;
 import com.combatlevels.plugin.classes.CombatClass;
 import com.combatlevels.plugin.data.PlayerData;
 import com.combatlevels.plugin.data.PlayerDataManager;
+import com.combatlevels.plugin.util.BiggestCartUtil;
 import com.combatlevels.plugin.util.FreezeUtil;
+import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Vehicle;
+import org.bukkit.entity.minecart.ExplosiveMinecart;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
@@ -29,6 +32,7 @@ public class CombatListener implements Listener {
 
     private static final String META_TNT_OWNER = "cl_tnt_owner";
     private static final String META_TOTEM_BROKEN = "cl_totem_broken_until";
+    private static final String META_BIGGEST_CART = "cl_biggest_cart_entity";
 
     private static final long MACE_FREEZE_COOLDOWN_MILLIS = 3 * 60 * 1000L;
     private static final int MACE_FREEZE_DURATION_TICKS = 20;
@@ -38,7 +42,9 @@ public class CombatListener implements Listener {
     private final JavaPlugin plugin;
     private final PlayerDataManager dataManager;
 
-    private final Map<UUID, Long> pendingTntCartPlacement = new HashMap<>();
+    private record PendingPlacement(long timeMillis, boolean biggest) { }
+
+    private final Map<UUID, PendingPlacement> pendingTntCartPlacement = new HashMap<>();
 
     public CombatListener(JavaPlugin plugin, PlayerDataManager dataManager) {
         this.plugin = plugin;
@@ -137,30 +143,40 @@ public class CombatListener implements Listener {
     public void onPlayerInteract(PlayerInteractEvent event) {
         ItemStack item = event.getItem();
         if (item == null) return;
-        if (!item.getType().name().equals("TNT_MINECART")) return;
+        if (item.getType() != Material.TNT_MINECART) return;
 
-        pendingTntCartPlacement.put(event.getPlayer().getUniqueId(), System.currentTimeMillis());
+        boolean isBiggest = BiggestCartUtil.isBiggestCart(item);
+        pendingTntCartPlacement.put(event.getPlayer().getUniqueId(), new PendingPlacement(System.currentTimeMillis(), isBiggest));
     }
 
     @EventHandler
     public void onVehicleCreate(VehicleCreateEvent event) {
         Vehicle vehicle = event.getVehicle();
-        if (!vehicle.getType().name().equals("MINECART_TNT")) return;
+        if (!(vehicle instanceof ExplosiveMinecart explosiveMinecart)) return;
 
         long now = System.currentTimeMillis();
         UUID bestMatch = null;
         long bestTime = -1;
+        boolean bestBiggest = false;
 
-        pendingTntCartPlacement.entrySet().removeIf(e -> now - e.getValue() > TNT_PLACEMENT_MATCH_WINDOW_MILLIS);
-        for (Map.Entry<UUID, Long> entry : pendingTntCartPlacement.entrySet()) {
-            if (entry.getValue() > bestTime) {
-                bestTime = entry.getValue();
+        pendingTntCartPlacement.entrySet().removeIf(e -> now - e.getValue().timeMillis() > TNT_PLACEMENT_MATCH_WINDOW_MILLIS);
+        for (Map.Entry<UUID, PendingPlacement> entry : pendingTntCartPlacement.entrySet()) {
+            if (entry.getValue().timeMillis() > bestTime) {
+                bestTime = entry.getValue().timeMillis();
                 bestMatch = entry.getKey();
+                bestBiggest = entry.getValue().biggest();
             }
         }
 
         if (bestMatch != null) {
             vehicle.setMetadata(META_TNT_OWNER, new FixedMetadataValue(plugin, bestMatch.toString()));
+
+            if (bestBiggest) {
+                // نضاعف قوة الانفجار الفعلية (تكسير + ضرر) بدل ما نتلاعب بالضرر يدوياً بعد الانفجار
+                explosiveMinecart.setExplosionPower(explosiveMinecart.getExplosionPower() * 2f);
+                vehicle.setMetadata(META_BIGGEST_CART, new FixedMetadataValue(plugin, true));
+            }
+
             pendingTntCartPlacement.remove(bestMatch);
         }
     }
@@ -184,6 +200,10 @@ public class CombatListener implements Listener {
         if (victim.getUniqueId().equals(ownerUuid)) {
             event.setCancelled(true);
             return;
+        }
+
+        if (damager.hasMetadata(META_BIGGEST_CART)) {
+            victim.getWorld().playSound(victim.getLocation(), Sound.ENTITY_GENERIC_EXPLODE, 3f, 0.7f);
         }
 
         long expiry = System.currentTimeMillis() + TOTEM_BREAK_DURATION_MILLIS;
@@ -236,6 +256,11 @@ public class CombatListener implements Listener {
         if (wasLocked && killerData.isBeginnerPerkUnlocked() && killerData.getCombatClass() != null) {
             killer.sendMessage("§a★ فتحت ميزة المبتدئ الخاصة بـ" + killerData.getCombatClass().getDisplayName() + " بعد أول قتلة!");
             killer.playSound(killer.getLocation(), Sound.ITEM_TOTEM_USE, 1f, 1.2f);
+
+            if (killerData.getCombatClass() == CombatClass.TNT_CART) {
+                killerData.setLastBiggestCartMillis(System.currentTimeMillis());
+            }
         }
     }
-            }
+                    }
+    
