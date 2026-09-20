@@ -8,6 +8,8 @@ import com.combatlevels.plugin.gui.ClassSelectionGUI;
 import com.combatlevels.plugin.listeners.CombatListener;
 import com.combatlevels.plugin.listeners.GUIClickListener;
 import com.combatlevels.plugin.listeners.PlayerJoinListener;
+import com.combatlevels.plugin.tasks.BiggestCartTask;
+import com.combatlevels.plugin.util.BiggestCartUtil;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -23,6 +25,8 @@ public class CombatLevelsPlugin extends JavaPlugin implements CommandExecutor {
         this.dataManager = new PlayerDataManager(this);
         dataManager.loadAll();
 
+        BiggestCartUtil.init(this);
+
         getServer().getPluginManager().registerEvents(new PlayerJoinListener(this, dataManager), this);
         getServer().getPluginManager().registerEvents(new GUIClickListener(dataManager), this);
         getServer().getPluginManager().registerEvents(new CombatListener(this, dataManager), this);
@@ -30,6 +34,9 @@ public class CombatLevelsPlugin extends JavaPlugin implements CommandExecutor {
         if (getCommand("chooseclass") != null) getCommand("chooseclass").setExecutor(this);
         if (getCommand("combatlevel") != null) getCommand("combatlevel").setExecutor(this);
         if (getCommand("setclass") != null) getCommand("setclass").setExecutor(new SetClassCommand(dataManager));
+
+        // نفحص كل دقيقة (1200 تك) هل حان وقت تطوير عربة تنت لأي لاعب TNT_CART
+        new BiggestCartTask(dataManager).runTaskTimer(this, 20L * 60, 20L * 60);
 
         getLogger().info("CombatLevels تفعّل بنجاح! (كلاسات: سيف / فأس / ميس / عربة تنت)");
     }
@@ -86,4 +93,3 @@ public class CombatLevelsPlugin extends JavaPlugin implements CommandExecutor {
         }
     }
 }
-
