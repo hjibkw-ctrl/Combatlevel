@@ -13,7 +13,15 @@ public class PlayerData {
     private UUID swordStreakTarget;
     private int swordStreakCount;
 
+    // وضعية الكريتكال المستمرة بعد 3 ضربات متتالية.
+    // تفضل مفعّلة لين تنتهي المدة أو يوقفها ضرب معاكس (نلغيها من الكود الخارجي مباشرة).
+    private long critModeExpiryMillis;
+
     private long maceLastFreezeMillis;
+
+    // "The Biggest Cart": آخر وقت انعطى فيه اللاعب عربة تنت مطورة.
+    // تنضبط أول مرة لحظة أول قتلة، وبعدين كل 10 دقايق من هالوقت.
+    private long lastBiggestCartMillis;
 
     public PlayerData(UUID uuid) {
         this.uuid = uuid;
@@ -21,7 +29,9 @@ public class PlayerData {
         this.kills = 0;
         this.swordStreakTarget = null;
         this.swordStreakCount = 0;
+        this.critModeExpiryMillis = 0L;
         this.maceLastFreezeMillis = 0L;
+        this.lastBiggestCartMillis = 0L;
     }
 
     public UUID getUuid() {
@@ -79,11 +89,51 @@ public class PlayerData {
         swordStreakCount = 0;
     }
 
+    // ===== وضعية الكريتكال المستمرة (السيف) =====
+
+    public boolean isCritModeActive() {
+        return System.currentTimeMillis() < critModeExpiryMillis;
+    }
+
+    /**
+     * يفعّل أو يجدد وضعية الكريتكال لمدة durationMillis من الآن.
+     */
+    public void activateCritMode(long durationMillis) {
+        this.critModeExpiryMillis = System.currentTimeMillis() + durationMillis;
+    }
+
+    /**
+     * يلغي وضعية الكريتكال فوراً (يستخدم لما اللاعب ينضرب من حد ثاني).
+     */
+    public void cancelCritMode() {
+        this.critModeExpiryMillis = 0L;
+    }
+
+    public long getCritModeExpiryMillis() {
+        return critModeExpiryMillis;
+    }
+
+    public void setCritModeExpiryMillis(long critModeExpiryMillis) {
+        this.critModeExpiryMillis = critModeExpiryMillis;
+    }
+
+    // ===== الميس =====
+
     public long getMaceLastFreezeMillis() {
         return maceLastFreezeMillis;
     }
 
     public void setMaceLastFreezeMillis(long millis) {
         this.maceLastFreezeMillis = millis;
+    }
+
+    // ===== عربة التنت (The Biggest Cart) =====
+
+    public long getLastBiggestCartMillis() {
+        return lastBiggestCartMillis;
+    }
+
+    public void setLastBiggestCartMillis(long millis) {
+        this.lastBiggestCartMillis = millis;
     }
 }
