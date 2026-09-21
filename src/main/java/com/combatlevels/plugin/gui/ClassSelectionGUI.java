@@ -1,6 +1,7 @@
 package com.combatlevels.plugin.gui;
 
 import com.combatlevels.plugin.classes.CombatClass;
+import com.combatlevels.plugin.util.TextUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -24,11 +25,41 @@ public class ClassSelectionGUI {
     public static Inventory build() {
         Inventory inv = Bukkit.createInventory(null, SIZE, GUI_TITLE);
 
+        fillBorder(inv);
+
         inv.setItem(SLOT_SWORD, createClassItem(CombatClass.SWORD));
         inv.setItem(SLOT_MACE, createClassItem(CombatClass.MACE));
         inv.setItem(SLOT_TNT_CART, createClassItem(CombatClass.TNT_CART));
 
         return inv;
+    }
+
+    /**
+     * يعبي كل السلوتات الفاضية بزجاج ملون (أزرق فاتح يمين، أحمر يسار) كإطار زخرفي،
+     * ويسيب سلوتات الكلاسات فاضية عشان تنحط فيها الأيقونات بعدين.
+     */
+    private static void fillBorder(Inventory inv) {
+        ItemStack blueFiller = createFiller(Material.LIGHT_BLUE_STAINED_GLASS_PANE);
+        ItemStack redFiller = createFiller(Material.RED_STAINED_GLASS_PANE);
+
+        for (int slot = 0; slot < SIZE; slot++) {
+            if (slot == SLOT_SWORD || slot == SLOT_MACE || slot == SLOT_TNT_CART) continue;
+
+            // نص الصف الأول = أزرق، النص الثاني = أحمر (نفس تقسيم الصورة المرجعية)
+            int column = slot % 9;
+            ItemStack filler = (column < 4) ? blueFiller : redFiller;
+            inv.setItem(slot, filler);
+        }
+    }
+
+    private static ItemStack createFiller(Material material) {
+        ItemStack filler = new ItemStack(material);
+        ItemMeta meta = filler.getItemMeta();
+        if (meta != null) {
+            meta.setDisplayName(" ");
+            filler.setItemMeta(meta);
+        }
+        return filler;
     }
 
     public static void open(Player player) {
@@ -43,10 +74,26 @@ public class ClassSelectionGUI {
             meta.setDisplayName(combatClass.getDisplayName());
 
             List<String> lore = new ArrayList<>();
-            lore.add(combatClass.getDescription());
+
+            // عنوان القدرة: الاسم الإنجليزي بتأثير قوس قزح + مقدمة عربية بلون ذهبي
+            lore.add(TextUtil.rainbow(combatClass.getAbilityEnglishName()) + " §6§l: §6" + combatClass.getAbilityIntroArabic());
             lore.add("");
-            for (String line : combatClass.getPerksLore()) {
-                lore.add(line);
+
+            lore.add("§e§lLevel 1");
+            for (String line : combatClass.getLevel1Lines()) {
+                lore.add("§e" + line);
+            }
+            lore.add("");
+
+            lore.add("§9§lLevel 3");
+            for (String line : combatClass.getLevel3Lines()) {
+                lore.add("§9" + line);
+            }
+            lore.add("");
+
+            lore.add("§f§lLevel 5");
+            for (String line : combatClass.getLevel5Lines()) {
+                lore.add("§f" + line);
             }
 
             meta.setLore(lore);
