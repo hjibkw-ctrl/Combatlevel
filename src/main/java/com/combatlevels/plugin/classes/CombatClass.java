@@ -7,12 +7,15 @@ public enum CombatClass {
     MACE(
             "§6الميس",
             new String[]{"MACE", "STICK"},
-            "§7ضربات ثقيلة تعتمد على السيطرة بالساحة.",
+            "(Mace Ability)",
+            "قدرة الميس!",
             new String[]{
-                    "§eميزة المبتدئ §7(تفتح بعد أول قتلة):",
-                    "§f- عند ضرب أي كائن، وكل §b3 دقائق§f،",
-                    "§f  يتجمد اللاعب المضروب لمدة §bثانية واحدة§f."
-            }
+                    "بعد قتل اول لاعب ستفتح لك ميزة الستن (التجميد).",
+                    "كل 3 دقايق يوصلك إشعار إن القدرة تفعّلت،",
+                    "وأي ضربة بعدها تكون ستان: تجمّد الخصم لمدة ثانية."
+            },
+            new String[]{"قيد تطوير..."},
+            new String[]{"قيد تطوير..."}
     ),
 
     SWORD(
@@ -25,57 +28,77 @@ public enum CombatClass {
                     "GOLDEN_SWORD",
                     "WOODEN_SWORD"
             },
-            "§7دقة وسرعة، يعاقب الخصم اللي ما يقدر يرد.",
+            "(Sword Ability)",
+            "قدرة سيف!",
             new String[]{
-                    "§eميزة المبتدئ §7(تفتح بعد أول قتلة):",
-                    "§f- إذا ضربت نفس اللاعب §b3 ضربات متتالية§f",
-                    "§f  بدون ما تنضرب أي ضربة بينهم،",
-                    "§f  الضربة الثالثة تصير §cكريتكل§f تلقائياً",
-                    "§f  حتى لو ما قفزت."
-            }
+                    "بعد قتل اول لاعب ستفتح لك ميزة الكريتكال التلقائي.",
+                    "يعني ما تحتاج تقفز لضرب كريتكال، لمدة 10 ثواني",
+                    "كل ضرباتك كريتكال تلقائياً، وتنلغى لو انضربت",
+                    "أو انتهت المدة."
+            },
+            new String[]{"قيد تطوير..."},
+            new String[]{"قيد تطوير..."}
     ),
 
     TNT_CART(
             "§cعربة التنت",
             new String[]{"TNT_MINECART", "MINECART_TNT", "TNT"},
-            "§7تفخيخ وتفجير متحكم به.",
+            "(T-Cart Ability)",
+            "قدرة الماينكارت!",
             new String[]{
-                    "§eميزة المبتدئ §7(تفتح بعد أول قتلة):",
-                    "§f- تفجير عربة التنت اللي تحطها ما راح",
-                    "§f  يضرك أنت، بس يضر العدو.",
-                    "§f- أي لاعب ينضرب من التفجير، §cالتوتم§f",
-                    "§f  ما راح يشتغل عنده لمدة §bدقيقة كاملة§f."
-            }
+                    "بعد قتل اول لاعب تفتح ميزة §fThe Biggest Cart§e.",
+                    "كل 10 دقايق، عربة تنت عادية بإنفنتوريك",
+                    "تتحول لعربة مطورة، انفجارها أقوى ×2 من العادية.",
+                    "لو ما تحمل عربة وقتها، التايمر يرجع للصفر."
+            },
+            new String[]{"قيد تطوير..."},
+            new String[]{"قيد تطوير..."}
     );
 
     private final String displayName;
     private final String[] materialCandidates;
-    private final String description;
-    private final String[] perksLore;
+    private final String abilityEnglishName;
+    private final String abilityIntroArabic;
+    private final String[] level1Lines;
+    private final String[] level3Lines;
+    private final String[] level5Lines;
 
-    CombatClass(String displayName, String[] materialCandidates, String description, String[] perksLore) {
+    CombatClass(String displayName, String[] materialCandidates,
+                String abilityEnglishName, String abilityIntroArabic,
+                String[] level1Lines, String[] level3Lines, String[] level5Lines) {
         this.displayName = displayName;
         this.materialCandidates = materialCandidates;
-        this.description = description;
-        this.perksLore = perksLore;
+        this.abilityEnglishName = abilityEnglishName;
+        this.abilityIntroArabic = abilityIntroArabic;
+        this.level1Lines = level1Lines;
+        this.level3Lines = level3Lines;
+        this.level5Lines = level5Lines;
     }
 
     public String getDisplayName() {
         return displayName;
     }
 
-    public String getDescription() {
-        return description;
+    public String getAbilityEnglishName() {
+        return abilityEnglishName;
     }
 
-    public String[] getPerksLore() {
-        return perksLore;
+    public String getAbilityIntroArabic() {
+        return abilityIntroArabic;
     }
 
-    /**
-     * يجرب كل الأسماء بالترتيب ويرجع أول مادة موجودة فعلياً بهذي النسخة من ماين كرافت.
-     * لو ما لقى أي وحدة منهم، يرجع STICK كحل احتياطي أخير عشان الآيتم ما يختفي من الـ GUI.
-     */
+    public String[] getLevel1Lines() {
+        return level1Lines;
+    }
+
+    public String[] getLevel3Lines() {
+        return level3Lines;
+    }
+
+    public String[] getLevel5Lines() {
+        return level5Lines;
+    }
+
     public Material getIconMaterial() {
         for (String name : materialCandidates) {
             Material mat = Material.matchMaterial(name);
@@ -84,9 +107,6 @@ public enum CombatClass {
         return Material.STICK;
     }
 
-    /**
-     * الكلاس مدعوم إذا لقينا ولو مادة وحدة من قائمة البدائل موجودة بهذي النسخة.
-     */
     public boolean isSupportedOnThisServer() {
         for (String name : materialCandidates) {
             if (Material.matchMaterial(name) != null) return true;
