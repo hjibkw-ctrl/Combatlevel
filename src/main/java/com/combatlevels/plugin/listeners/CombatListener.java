@@ -17,7 +17,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
-import org.bukkit.event.entity.EntityResurrectEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.vehicle.VehicleCreateEvent;
 import org.bukkit.inventory.ItemStack;
@@ -31,12 +30,10 @@ import java.util.UUID;
 public class CombatListener implements Listener {
 
     private static final String META_TNT_OWNER = "cl_tnt_owner";
-    private static final String META_TOTEM_BROKEN = "cl_totem_broken_until";
     private static final String META_BIGGEST_CART = "cl_biggest_cart_entity";
 
     private static final long MACE_FREEZE_COOLDOWN_MILLIS = 3 * 60 * 1000L;
     private static final int MACE_FREEZE_DURATION_TICKS = 20;
-    private static final long TOTEM_BREAK_DURATION_MILLIS = 60 * 1000L;
     private static final long TNT_PLACEMENT_MATCH_WINDOW_MILLIS = 3000L;
 
     private final JavaPlugin plugin;
@@ -66,11 +63,6 @@ public class CombatListener implements Listener {
                     victim.sendMessage("§c✖ توقفت وضعية الكريتكال المستمرة بسبب انضربك!");
                 }
             }
-        }
-
-        if (event.getCause() == EntityDamageEvent.DamageCause.ENTITY_EXPLOSION) {
-            handleTntCartExplosion(event);
-            return;
         }
 
         if (!(event.getDamager() instanceof Player attacker)) return;
@@ -181,50 +173,6 @@ public class CombatListener implements Listener {
         }
     }
 
-    private void handleTntCartExplosion(EntityDamageByEntityEvent event) {
-        Entity damager = event.getDamager();
-        if (!damager.getType().name().equals("MINECART_TNT")) return;
-        if (!damager.hasMetadata(META_TNT_OWNER)) return;
-        if (!(event.getEntity() instanceof Player victim)) return;
-
-        UUID ownerUuid;
-        try {
-            ownerUuid = UUID.fromString(damager.getMetadata(META_TNT_OWNER).get(0).asString());
-        } catch (IllegalArgumentException e) {
-            return;
-        }
-
-        PlayerData ownerData = dataManager.getOrCreate(ownerUuid);
-        if (ownerData.getCombatClass() != CombatClass.TNT_CART || !ownerData.isBeginnerPerkUnlocked()) return;
-
-        if (victim.getUniqueId().equals(ownerUuid)) {
-            event.setCancelled(true);
-            return;
-        }
-
-        if (damager.hasMetadata(META_BIGGEST_CART)) {
-            victim.getWorld().playSound(victim.getLocation(), Sound.ENTITY_GENERIC_EXPLODE, 3f, 0.7f);
-        }
-
-        long expiry = System.currentTimeMillis() + TOTEM_BREAK_DURATION_MILLIS;
-        victim.setMetadata(META_TOTEM_BROKEN, new FixedMetadataValue(plugin, expiry));
-        victim.sendMessage("§c⚠ انكسر تأثير التوتم لديك لمدة دقيقة بسبب انفجار عربة التنت!");
-    }
-
-    @EventHandler
-    public void onResurrect(EntityResurrectEvent event) {
-        if (!(event.getEntity() instanceof Player player)) return;
-        if (!player.hasMetadata(META_TOTEM_BROKEN)) return;
-
-        long expiry = player.getMetadata(META_TOTEM_BROKEN).get(0).asLong();
-        if (System.currentTimeMillis() < expiry) {
-            event.setCancelled(true);
-            player.sendMessage("§c✖ التوتم لم يشتغل بسبب تأثير عربة التنت!");
-        } else {
-            player.removeMetadata(META_TOTEM_BROKEN, plugin);
-        }
-    }
-
     @EventHandler
     public void onDeath(EntityDeathEvent event) {
         if (!(event.getEntity() instanceof Player victim)) return;
@@ -262,4 +210,4 @@ public class CombatListener implements Listener {
             }
         }
     }
-}
+    }
