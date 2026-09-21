@@ -14,7 +14,9 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 public class BiggestCartTask extends BukkitRunnable {
 
-    private static final long INTERVAL_MILLIS = 10 * 60 * 1000L; // 10 دقايق
+    // ⚠️ مؤقت للتجربة بس: 10 ثواني بدل 10 دقايق.
+    // بعد ما تخلص الاختبار، رجّعها هيك: private static final long INTERVAL_MILLIS = 10 * 60 * 1000L;
+    private static final long INTERVAL_MILLIS = 10 * 1000L;
 
     private final PlayerDataManager dataManager;
 
