@@ -36,7 +36,10 @@ public class CombatLevelsPlugin extends JavaPlugin implements CommandExecutor {
         if (getCommand("setclass") != null) getCommand("setclass").setExecutor(new SetClassCommand(dataManager));
 
         // نفحص كل دقيقة (1200 تك) هل حان وقت تطوير عربة تنت لأي لاعب TNT_CART
-        new BiggestCartTask(dataManager).runTaskTimer(this, 20L * 60, 20L * 60);
+        // ⚠️ مؤقت للتجربة بس: نفحص كل ثانية (20 تك) بدل كل دقيقة، عشان يتماشى مع تايمر الـ10 ثواني التجريبي.
+        // بعد ما تخلص الاختبار ونرجع الإنتيرفال لـ10 دقايق، رجّع هذا السطر إلى:
+        // new BiggestCartTask(dataManager).runTaskTimer(this, 20L * 60, 20L * 60);
+        new BiggestCartTask(dataManager).runTaskTimer(this, 20L, 20L);
 
         getLogger().info("CombatLevels تفعّل بنجاح! (كلاسات: سيف / فأس / ميس / عربة تنت)");
     }
